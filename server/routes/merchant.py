@@ -37,3 +37,18 @@ async def get_merchants_data(id):
     if merchant :
         return ResponseModel(merchant, "Merchant data retrieved successfully")
     return ErrorResponseModel("An error occurred", 404, "Merchant doesn't exist")
+
+@router.put("/{id}",)
+async def update_merchant_data(id: str, req: UpdateMerchantModel = Body(...)):
+    req = {k: v for k, v in req.dict().items() if v is not None}
+    updated_merchant = await update_merchant(id, req)
+    if updated_merchant:
+        return ResponseModel(
+            "Merchant ID: {} name update is successful" . format(id),
+            "Merchant name updated successfully",
+        )
+    return ErrorResponseModel(
+        "An Error Occured",
+        404,
+        "There was an error updating the merchant data.",
+    )
