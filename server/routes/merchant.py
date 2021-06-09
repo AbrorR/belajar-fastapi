@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body
 from fastapi.encoders import jsonable_encoder
 
-from fastapi-merchant.server.database import (
+from server.database import (
     add_merchant,
     delete_merchant,
     retrieve_merchant,
@@ -9,7 +9,7 @@ from fastapi-merchant.server.database import (
     update_merchant,
 )
 
-from fastapi-merchant.server.models.merchant import (
+from server.models.merchant import (
     ErrorResponseModel,
     ResponseModel,
     MerchantModel,
@@ -23,3 +23,17 @@ async def add_merchant_data(merchant: MerchantModel = Body(...)):
     merchant = jsonable_encoder(merchant)
     new_merchant = await add_merchant(merchant)
     return ResponseModel(new_merchant, "Merchant added successfully.")
+
+@router.get("/", response_description="Merchants retrieved")
+async def get_merchants():
+    merchant = await retrieve_merchants()
+    if merchant :
+        return ResponseModel(merchant, "Merchant data retrieved successfully")
+    return ResponseModel(merchant, "Empty list returned")
+
+@router.get("/{id}", response_description="Merchant data retrieved")
+async def get_merchants_data(id):
+    merchant = await retrieve_merchant(id)
+    if merchant :
+        return ResponseModel(merchant, "Merchant data retrieved successfully")
+    return ErrorResponseModel("An error occurred", 404, "Merchant doesn't exist")

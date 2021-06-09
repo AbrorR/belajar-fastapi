@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fastapi-merchant.server.routes.merchant import router as MerchantRouter
+from server.routes.merchant import router as MerchantRouter
 
 app = FastAPI()
 
