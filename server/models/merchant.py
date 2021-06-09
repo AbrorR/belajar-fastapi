@@ -2,28 +2,24 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
 
 class MerchantModel(BaseModel):
-    id: int = Field(...) #(...) Field required
-    email: EmailStr = Field(...)
+    email: EmailStr = Field(...)#(...) Field required
     name: str = Field(...)
     
     class Config:
         schema_extra = {
             "example" : {
-                "id": "1",
                 "email": "merchanta@gmail.com",
                 "name": "Merchant A", 
             }
         }
 
 class UpdateMerchantModel(BaseModel):
-    id: Optional[int]
     email: Optional[EmailStr]
     name: Optional[str]
 
     class Config:
         schema_extra = {
             "example" : {
-                "id": "1",
                 "email": "merchantb@gmail.com",
                 "name": "Merchant B",
             }
