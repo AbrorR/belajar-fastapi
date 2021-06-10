@@ -52,3 +52,15 @@ async def update_merchant_data(id: str, req: UpdateMerchantModel = Body(...)):
         404,
         "There was an error updating the merchant data.",
     )
+
+@router.delete("/{id}", response_description="Merchant data deleted from database")
+async def delete_merchant_data(id: str):
+    deleted_merchant = await delete_merchant(id)
+    if deleted_merchant: 
+        return ResponseModel(
+            "Merchant ID: {} removed" . format(id),
+            "Merchant deleted successfully",
+        )
+    return ErrorResponseModel(
+        "An error occured", 404, "Merchant with id {0} doesn't exist".format(id)
+    )
