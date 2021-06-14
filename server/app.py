@@ -4,6 +4,8 @@ from server.routes.merchant import router as MerchantRouter
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 
+#tes
+
 fake_users_db = {
     "usera": {
         "username": "usera",
