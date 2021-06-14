@@ -9,14 +9,14 @@ from pydantic import BaseModel, EmailStr
 fake_users_db = {
     "usera": {
         "username": "usera",
-        "full_name": "User A",
+        "fullname": "User A",
         "email": "usera@example.com",
         "hashed_password": "usera",
         "disabled": False,
     },
     "userb": {
         "username": "userb",
-        "full_name": "User B",
+        "fullname": "User B",
         "email": "userb@example.com",
         "hashed_password": "userb",
         "disabled": True,
