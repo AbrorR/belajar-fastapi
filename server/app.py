@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import Depends, FastAPI, HTTPException, status
 from server.routes.merchant import router as MerchantRouter
+from server.routes.user import router as UserRouter
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 
@@ -26,6 +27,7 @@ fake_users_db = {
 app = FastAPI()
 
 app.include_router(MerchantRouter, tags=["Merchant"], prefix="/merchant")
+app.include_router(UserRouter, tags=["User"], prefix="/user")
 
 def fake_hash_password(password: str) :
     return "user" + password
