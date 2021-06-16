@@ -7,7 +7,8 @@ class UserModel(BaseModel):
     email: EmailStr = Field(...)#(...) Field required
     username: str = Field(...)
     fullname: str = Field(...)
-    disabled: Optional[str] = None
+    password: str = Field(...)
+    # disabled: Optional[str] = None
     
     class Config:
         schema_extra = {
@@ -15,7 +16,8 @@ class UserModel(BaseModel):
                 "email": "usera@example.com",
                 "username": "usera",
                 "fullname": "User A",
-                "hashed_password": "usera",
+                "password": "usera",
+                # "hashed_password": "usera",
                 # "disabled": False, 
             }
         }
@@ -24,6 +26,7 @@ class UpdateUserModel(BaseModel):
     email: EmailStr = Field(...)
     username: str = Field(...)
     fullname: str = Field(...)
+    password: str = Field(...)
     # disabled: Optional[str] = None
 
     class Config:
@@ -32,7 +35,8 @@ class UpdateUserModel(BaseModel):
                 "email": "usera@example.com",
                 "username": "usera",
                 "fullname": "User A",
-                "hashed_password": "usera",
+                "password": "usera",
+                # "hashed_password": "usera",
                 # "disabled": False,
             }
         }

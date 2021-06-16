@@ -1,3 +1,17 @@
+# from sqlalchemy import create_engine
+# from sqlalchemy.ext.declarative import declarative_base
+# from sqlalchemy.orm import sessionmaker
+
+# SQLALCHEMY_DATABASE_URL = "sqlite:///./fastapi.db"
+# # SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
+
+# engine = create_engine(
+#     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+# )
+# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Base = declarative_base()
+
 import motor.motor_asyncio
 from bson.objectid import ObjectId
 from decouple import config
@@ -25,8 +39,20 @@ def user_helper(user) -> dict:
         "email": user["email"],
         "username": user["username"],
         "fullname": user["fullname"],
+        "password": user["password"],
         # "disabled": user["False"],
     }
+
+#Login user
+async def login_user(username:str, password:str):
+    found_user = await user_collection.find_one({"username":username})
+    if found_user:
+        found_password = found_user["password"]
+        if password != found_password:
+            return "password salah"
+        return "berhasil login"
+    if not found_user: 
+        return "user tidak ditemukan"
 
 # Retrieve all
 async def retrieve_merchants():
