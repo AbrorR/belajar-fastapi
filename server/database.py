@@ -1,20 +1,12 @@
-# from sqlalchemy import create_engine
-# from sqlalchemy.ext.declarative import declarative_base
-# from sqlalchemy.orm import sessionmaker
-
-# SQLALCHEMY_DATABASE_URL = "sqlite:///./fastapi.db"
-# # SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
-
-# engine = create_engine(
-#     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-# )
-# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Base = declarative_base()
-
 import motor.motor_asyncio
 from bson.objectid import ObjectId
 from decouple import config
+
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 
 MONGO_DETAILS = config('MONGO_DETAILS') # read environment variable.
 
@@ -43,16 +35,45 @@ def user_helper(user) -> dict:
         # "disabled": user["False"],
     }
 
+app = FastAPI()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+SECRET_KEY = "d849550a56736ecafa159d5b68e5bd166fd8c7cf96377b804c04e0693de42dab"
+ALGORITHM = "HS256"
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    print(token)
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    # if expires_delta:
+    #     expire = datetime.utcnow() + expires_delta
+    # else:
+    #     expire = datetime.utcnow() + timedelta(minutes=15)
+    # to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
 #Login user
-async def login_user(username:str, password:str):
-    found_user = await user_collection.find_one({"username":username})
+@app.post("/token")
+async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
+    found_user = await user_collection.find_one({"username":form_data.username})
+    print(found_user)
     if found_user:
         found_password = found_user["password"]
-        if password != found_password:
-            return "password salah"
-        return "berhasil login"
+        if form_data.password != found_password:
+            raise HTTPException(status_code=400, detail="Incorrect password")
+        access_token = create_access_token(
+            data={"sub": found_user["username"]}
+        )
+        return {"access_token": access_token, "token_type": "bearer"}
     if not found_user: 
         return "user tidak ditemukan"
+
+@app.get("/items")
+def items(current_user = Depends(get_current_user)):
+    return {"oke"}
 
 # Retrieve all
 async def retrieve_merchants():
