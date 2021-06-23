@@ -1,20 +1,9 @@
-# from sqlalchemy import create_engine
-# from sqlalchemy.ext.declarative import declarative_base
-# from sqlalchemy.orm import sessionmaker
-
-# SQLALCHEMY_DATABASE_URL = "sqlite:///./fastapi.db"
-# # SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
-
-# engine = create_engine(
-#     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-# )
-# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Base = declarative_base()
-
 import motor.motor_asyncio
 from bson.objectid import ObjectId
+
 from decouple import config
+from fastapi import FastAPI
+import uuid
 
 MONGO_DETAILS = config('MONGO_DETAILS') # read environment variable.
 
@@ -23,25 +12,32 @@ client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
 database_merchant = client.merchants
 database_user = client.users
 
+# uu = uuid.uuid4()
+# print()
+
 merchant_collection = database_merchant.get_collection("merchants_collection")
-user_collection = database_user.get_collection("users_collection")
+user_collection = database_user.get_collection("users_collection") 
 
 def merchant_helper(merchant) -> dict:
     return {
-        "id": str(merchant["_id"]),
+        # "id": uuid.UUID(merchant["email"]),
+        "id": merchant["_id"],
         "email": merchant["email"],
         "name": merchant["name"],
+        "id_user": merchant["id_user"],
     }
 
 def user_helper(user) -> dict:
     return {
-        "id": str(user["_id"]),
+        "id_user": str(user["_id"]),
         "email": user["email"],
         "username": user["username"],
         "fullname": user["fullname"],
         "password": user["password"],
         # "disabled": user["False"],
     }
+
+app = FastAPI()
 
 #Login user
 async def login_user(username:str, password:str):
@@ -70,7 +66,9 @@ async def retrieve_users():
 # Add a new into to the database
 async def add_merchant(merchant_data: dict) -> dict:
     merchant = await merchant_collection.insert_one(merchant_data)
+    # user = await user_collection.insert_one(merchant_data)
     new_merchant = await merchant_collection.find_one({"_id": merchant.inserted_id})
+    # new_user = await user_collection.find_one({"_id": user.inserted_id})
     return merchant_helper(new_merchant)
 
 async def add_user(user_data: dict) -> dict:

@@ -16,12 +16,27 @@ from server.models.merchant import (
     UpdateMerchantModel,
 )
 
+from server.models.user import (
+    UserModel,
+    UpdateUserModel,
+)
+
+from server.database import (
+    add_user,
+    delete_user,
+    retrieve_user,
+    retrieve_users,
+    update_user,
+)
+
 router = APIRouter()
 
 @router.post("/", response_description="Merchant data added into the database")
 async def add_merchant_data(merchant: MerchantModel = Body(...)):
     merchant = jsonable_encoder(merchant)
+    # user = jsonable_encoder(user)
     new_merchant = await add_merchant(merchant)
+    # new_user = await add_user(user)
     return ResponseModel(new_merchant, "Merchant added successfully.")
 
 @router.get("/", response_description="Merchants retrieved")
