@@ -1,22 +1,21 @@
 from typing import Optional
-from uuid import uuid4
-from pydantic import BaseModel, EmailStr, Field
 import uuid
+from pydantic import BaseModel, EmailStr, Field
 
 class MerchantModel(BaseModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, alias="_id")
-    email: EmailStr = Field(...)#(...) Field required
-    name: str = Field(...)
-    id_user : str = Field(...)
+    email: EmailStr
+    name: str
+    id_user : str
     
-    # class Config:
-    #     schema_extra = {
-    #         "example" : {
-    #             "email": "merchanta@gmail.com",
-    #             "name": "Merchant A",
-                 
-    #         }
-    #     }
+    class Config:
+        schema_extra = {
+            "example" : {
+                "email": "merchanta@gmail.com",
+                "name": "Merchant A",
+                "id_user": "usera"
+            }
+        }
 
 class UpdateMerchantModel(BaseModel):
     email: Optional[EmailStr]

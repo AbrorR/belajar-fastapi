@@ -3,7 +3,13 @@ from bson.objectid import ObjectId
 
 from decouple import config
 from fastapi import FastAPI
-import uuid
+from uuid import UUID
+
+from fastapi import Depends, FastAPI, HTTPException, status, APIRouter
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 
 MONGO_DETAILS = config('MONGO_DETAILS') # read environment variable.
 
@@ -34,21 +40,73 @@ def user_helper(user) -> dict:
         "username": user["username"],
         "fullname": user["fullname"],
         "password": user["password"],
-        # "disabled": user["False"],
+        "merchant":user["merchant"],
+        "status": user["status"],
     }
 
-app = FastAPI()
+router = APIRouter()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login/")
+
+SECRET_KEY = "d849550a56736ecafa159d5b68e5bd166fd8c7cf96377b804c04e0693de42dab"
+ALGORITHM = "HS256"
+
+# def get_current_user(token: str = Depends(oauth2_scheme)):
+#     print(token)
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 
 #Login user
-async def login_user(username:str, password:str):
-    found_user = await user_collection.find_one({"username":username})
+@router.post("/")
+async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
+    found_user = await user_collection.find_one({"username":form_data.username})
+    print(found_user)
     if found_user:
         found_password = found_user["password"]
-        if password != found_password:
-            return "password salah"
-        return "berhasil login"
+        if form_data.password != found_password:
+            raise HTTPException(status_code=400, detail="Incorrect password")
+        access_token = create_access_token(
+            data={"sub": found_user["username"]}
+        )
+        return {"access_token": access_token, "token_type": "bearer"}
     if not found_user: 
         return "user tidak ditemukan"
+
+@router.get("/users/me")
+def get_current_user(token = Depends (oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub") 
+        if username is None:
+            raise credentials_exception
+        return username
+    except JWTError:
+        raise credentials_exception
+
+@router.get("/items")
+def items(current_user = Depends(get_current_user)):
+    print(current_user)
+    return {"oke"}
+
+
+
+# async def login_user(username:str, password:str):
+#     found_user = await user_collection.find_one({"username":username})
+#     if found_user:
+#         found_password = found_user["password"]
+#         if password != found_password:
+#             return "password salah"
+#         return "berhasil login"
+#     if not found_user: 
+#         return "user tidak ditemukan"
 
 # Retrieve all
 async def retrieve_merchants():
@@ -78,12 +136,19 @@ async def add_user(user_data: dict) -> dict:
 
 # Retrieve with a matching ID
 async def retrieve_merchant(id:str) -> dict:
-    merchant = await merchant_collection.find_one({"_id": ObjectId(id)})
+    merchant = await merchant_collection.find_one({"_id": id})
+    print (merchant)
     if merchant:
         return merchant_helper(merchant)
 
 async def retrieve_user(id:str) -> dict:
-    user = await user_collection.find_one({"_id": ObjectId(id)})
+    user = await user_collection.find_one({"_id": id})
+    if user:
+        return user_helper(user)
+
+# Retrieve with a status
+async def retrieve_status(status:bool) -> dict:
+    user = await user_collection.find_one({"status": status})
     if user:
         return user_helper(user)
 
@@ -92,10 +157,10 @@ async def update_merchant(id: str, data: dict):
     # Return false if an empty request body is sent.
     if len(data) < 1:
         return False
-    merchant = await merchant_collection.find_one({"_id": ObjectId(id)})
+    merchant = await merchant_collection.find_one({"_id": id})
     if merchant:
         updated_merchant = await merchant_collection.update_one(
-            {"_id": ObjectId(id)}, {"$set": data}
+            {"_id": id}, {"$set": data}
         )
         if updated_merchant:
             return True
@@ -105,10 +170,10 @@ async def update_user(id: str, data: dict):
     # Return false if an empty request body is sent.
     if len(data) < 1:
         return False
-    user = await user_collection.find_one({"_id": ObjectId(id)})
+    user = await user_collection.find_one({"_id": id})
     if user:
         updated_user = await user_collection.update_one(
-            {"_id": ObjectId(id)}, {"$set": data}
+            {"_id": id}, {"$set": data}
         )
         if updated_user:
             return True
@@ -116,9 +181,9 @@ async def update_user(id: str, data: dict):
 
 # Delete from the database
 async def delete_merchant(id: str):
-    merchant = await merchant_collection.find_one({"_id": ObjectId(id)})
+    merchant = await merchant_collection.find_one({"_id": id})
     if merchant:
-        await merchant_collection.delete_one({"_id": ObjectId(id)})
+        await merchant_collection.delete_one({"_id": id})
         return True
 
 async def delete_user(id: str):

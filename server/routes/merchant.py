@@ -32,7 +32,7 @@ from server.database import (
 router = APIRouter()
 
 @router.post("/", response_description="Merchant data added into the database")
-async def add_merchant_data(merchant: MerchantModel = Body(...)):
+async def add_merchant_data(merchant: MerchantModel):
     merchant = jsonable_encoder(merchant)
     # user = jsonable_encoder(user)
     new_merchant = await add_merchant(merchant)

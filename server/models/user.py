@@ -13,31 +13,31 @@ from server.models.merchant import (
 
 class UserModel(BaseModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, alias="_id")
-    email: EmailStr = Field(...)#(...) Field required
-    username: str = Field(...)
-    fullname: str = Field(...)
-    password: str = Field(...)
-    merchant: List[MerchantModel] = None
-    # disabled: Optional[str] = None
+    email: EmailStr 
+    username: str 
+    fullname: str 
+    password: str 
+    merchant: List[MerchantModel] = []
+    status: bool
     
-    # class Config:
-    #     schema_extra = {
-    #         "example" : {
-    #             "email": "usera@example.com",
-    #             "username": "usera",
-    #             "fullname": "User A",
-    #             "password": "usera",
-    #             # "hashed_password": "usera",
-    #             # "disabled": False, 
-    #         }
-    #     }
+    class Config:
+        schema_extra = {
+            "example" : {
+                "email": "usera@example.com",
+                "username": "usera",
+                "fullname": "User A",
+                "password": "usera",
+                "status": True
+            }
+        }
 
 class UpdateUserModel(BaseModel):
-    email: EmailStr = Field(...)
-    username: str = Field(...)
-    fullname: str = Field(...)
-    password: str = Field(...)
-    # disabled: Optional[str] = None
+    email: EmailStr  
+    username: str 
+    fullname: str 
+    password: str
+    merchant: List[MerchantModel] = None
+    status: bool
 
     class Config:
         schema_extra = {
@@ -46,8 +46,7 @@ class UpdateUserModel(BaseModel):
                 "username": "usera",
                 "fullname": "User A",
                 "password": "usera",
-                # "hashed_password": "usera",
-                # "disabled": False,
+                "status": True
             }
         }
     
