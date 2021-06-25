@@ -7,7 +7,6 @@ from server.database import (
     retrieve_user,
     retrieve_users,
     update_user,
-    login_user,
     get_current_user,
     retrieve_status,
     user_collection,
@@ -67,8 +66,8 @@ async def update_user_data(id: str, req: UpdateUserModel, current_user = Depends
         "There was an error updating the user data.",
     )
 
-@router.delete("/{id}", current_user = Depends(get_current_user) ,response_description="User data deleted from database")
-async def delete_user_data(id: str):
+@router.delete("/{id}" ,response_description="User data deleted from database")
+async def delete_user_data(id: str, current_user = Depends(get_current_user)):
     deleted_user = await delete_user(id)
     if deleted_user: 
         return ResponseModel(
@@ -80,7 +79,7 @@ async def delete_user_data(id: str):
     )
 
 @router.get("/updateUserMerchant")
-async def update_user_merchant(id_user: str):
+async def update_user_merchant(id_user: str, current_user = Depends(get_current_user)):
     updateMerchantUser = await merchant_collection.find({"id_user":id_user}).to_list(length=10)
     print(updateMerchantUser)
     if updateMerchantUser:
