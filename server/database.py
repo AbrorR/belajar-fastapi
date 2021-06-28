@@ -1,12 +1,14 @@
 import motor.motor_asyncio
 from bson.objectid import ObjectId
 
+from pydantic import ValidationError
+
 from decouple import config
 from fastapi import FastAPI
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, HTTPException, status, APIRouter
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, SecurityScopes
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -18,15 +20,11 @@ client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
 database_merchant = client.merchants
 database_user = client.users
 
-# uu = uuid.uuid4()
-# print()
-
 merchant_collection = database_merchant.get_collection("merchants_collection")
 user_collection = database_user.get_collection("users_collection") 
 
 def merchant_helper(merchant) -> dict:
     return {
-        # "id": uuid.UUID(merchant["email"]),
         "id": merchant["_id"],
         "email": merchant["email"],
         "name": merchant["name"],
@@ -69,14 +67,18 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
         if form_data.password != found_password:
             raise HTTPException(status_code=400, detail="Incorrect password")
         access_token = create_access_token(
-            data={"sub": found_user["username"]}
+            data={"sub": found_user["username"], "scopes": form_data.scopes}
         )
         return {"access_token": access_token, "token_type": "bearer"}
     if not found_user: 
         return "user tidak ditemukan"
 
 @router.get("/users/me")
-def get_current_user(token = Depends (oauth2_scheme)):
+def get_current_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
+    if security_scopes.scopes:
+        authenticate_value = f'Bearer scope="{security_scopes.scope_str}"'
+    else:
+        authenticate_value = f"Bearer"
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -87,14 +89,25 @@ def get_current_user(token = Depends (oauth2_scheme)):
         username: str = payload.get("sub") 
         if username is None:
             raise credentials_exception
-        return username
-    except JWTError:
+        token_scopes = payload.get("scopes", [])
+        # token_data = TokenData(scopes=token_scopes, username=username)
+    except (JWTError, ValidationError):
         raise credentials_exception
+    for scope in security_scopes.scopes:
+        if scope not in token_scopes.scopes:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not enough permissions",
+                headers={"WWW-Authenticate": authenticate_value},
+            )
+    #     return username
+    # except JWTError:
+    #     raise credentials_exception
 
-@router.get("/items")
-def items(current_user = Depends(get_current_user)):
-    print(current_user)
-    return {"oke"}
+# @router.get("/items")
+# def items(current_user = Depends(get_current_user)):
+#     print(current_user)
+#     return {"oke"}
 
 
 

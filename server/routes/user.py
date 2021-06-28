@@ -19,6 +19,7 @@ from server.models.user import (
     ResponseModel,
     UserModel,
     UpdateUserModel,
+    UpdateMerchantUser
 )
 
 router = APIRouter()
@@ -51,7 +52,7 @@ async def get_users_status(status:bool, current_user = Depends(get_current_user)
     return ErrorResponseModel("An error occurred", 404, "User doesn't exist")
 
 @router.put("/{id}",)
-async def update_user_data(id: str, req: UpdateUserModel, current_user = Depends(get_current_user)):
+async def update_user_data(id: str, req: UpdateUserModel):
     req = {k: v for k, v in req.dict().items() if v is not None}
     print(req)
     updated_user = await update_user(id, req)
@@ -78,17 +79,15 @@ async def delete_user_data(id: str, current_user = Depends(get_current_user)):
         "An error occured", 404, "User with id {0} doesn't exist".format(id)
     )
 
-@router.get("/updateUserMerchant")
-async def update_user_merchant(id_user: str, current_user = Depends(get_current_user)):
+@router.put("/updateUserMerchant")
+async def update_user_merchant(id_user: UpdateMerchantUser):
     updateMerchantUser = await merchant_collection.find({"id_user":id_user}).to_list(length=10)
-    print(updateMerchantUser)
     if updateMerchantUser:
         updated_merchant_user = await user_collection.update_one(
-            {"id": id_user}, {"$set": {"merchant":updateMerchantUser}}
+            {"_id": id_user}, {"$set": {"merchant":updateMerchantUser}}
         )
         if updated_merchant_user:
             return "True"
         return "False"
     else:
         return "data tidak merchant tidak ditemukan"
-    

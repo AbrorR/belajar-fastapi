@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 from pydantic import BaseModel, EmailStr, Field
 import uuid
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -19,6 +19,7 @@ class UserModel(BaseModel):
     password: str 
     merchant: List[MerchantModel] = []
     status: bool
+    scopes: List[str] = []
     
     class Config:
         schema_extra = {
@@ -46,9 +47,20 @@ class UpdateUserModel(BaseModel):
                 "username": "usera",
                 "fullname": "User A",
                 "password": "usera",
+                "merchant": [],
                 "status": True
             }
         }
+
+class UpdateMerchantUser(BaseModel):
+    id_user: str
+
+    # class Config:
+    #     schema_extra = {
+    #         "example" : {
+    #             "id_user": "3a86bffa-a6c8-4257-b8c1-29f8a8726bc1",
+    #         }
+    #     }
     
 def ResponseModel(data, message):
     return {
