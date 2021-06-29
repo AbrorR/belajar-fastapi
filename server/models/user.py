@@ -52,7 +52,7 @@ class UpdateUserModel(BaseModel):
             }
         }
 
-class UpdateMerchantUser(BaseModel):
+class UpdateUserMerchant(BaseModel):
     id_user: str
 
     # class Config:

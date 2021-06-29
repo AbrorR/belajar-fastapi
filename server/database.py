@@ -44,7 +44,9 @@ def user_helper(user) -> dict:
 
 router = APIRouter()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login/")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login/", 
+scopes={"Admin": "Read information about the current user.", "Staff": "Read items."},
+)
 
 SECRET_KEY = "d849550a56736ecafa159d5b68e5bd166fd8c7cf96377b804c04e0693de42dab"
 ALGORITHM = "HS256"
@@ -66,8 +68,11 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
         found_password = found_user["password"]
         if form_data.password != found_password:
             raise HTTPException(status_code=400, detail="Incorrect password")
+        found_scopes = found_user["scopes"]
+        if form_data.scopes != found_scopes:
+            raise HTTPException(status_code=400, detail="Not enough permissions")
         access_token = create_access_token(
-            data={"sub": found_user["username"], "scopes": form_data.scopes}
+            data={"sub": found_user["username"],"scopes": form_data.scopes}
         )
         return {"access_token": access_token, "token_type": "bearer"}
     if not found_user: 
@@ -100,9 +105,7 @@ def get_current_user(security_scopes: SecurityScopes, token: str = Depends(oauth
                 detail="Not enough permissions",
                 headers={"WWW-Authenticate": authenticate_value},
             )
-    #     return username
-    # except JWTError:
-    #     raise credentials_exception
+    return username
 
 # @router.get("/items")
 # def items(current_user = Depends(get_current_user)):

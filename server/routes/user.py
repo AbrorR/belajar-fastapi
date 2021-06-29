@@ -19,7 +19,7 @@ from server.models.user import (
     ResponseModel,
     UserModel,
     UpdateUserModel,
-    UpdateMerchantUser
+    UpdateUserMerchant
 )
 
 router = APIRouter()
@@ -80,11 +80,11 @@ async def delete_user_data(id: str, current_user = Depends(get_current_user)):
     )
 
 @router.put("/updateUserMerchant")
-async def update_user_merchant(id_user: UpdateMerchantUser):
+async def update_user_merchant(id_user: UpdateUserMerchant):
     updateMerchantUser = await merchant_collection.find({"id_user":id_user}).to_list(length=10)
     if updateMerchantUser:
-        updated_merchant_user = await user_collection.update_one(
-            {"_id": id_user}, {"$set": {"merchant":updateMerchantUser}}
+        updated_merchant_user =await user_collection.update_one(
+            {"id_user": id_user}, {"$set": {"merchant":updateMerchantUser}}
         )
         if updated_merchant_user:
             return "True"
