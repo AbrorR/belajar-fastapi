@@ -38,7 +38,7 @@ async def get_user():
     return ResponseModel(users, "Empty list returned")
 
 @router.get("/findBy{id}", response_description="User data retrieved")
-async def get_users_data(id, current_user = Depends(get_current_user)):
+async def get_users_data(id):
     user = await retrieve_user(id)
     if user :
         return ResponseModel(user, "User data retrieved successfully")
@@ -51,7 +51,7 @@ async def get_users_status(status:bool, current_user = Depends(get_current_user)
         return ResponseModel(found_user, "User status retrieved successfully")
     return ErrorResponseModel("An error occurred", 404, "User doesn't exist")
 
-@router.put("/{id}",)
+@router.put("/edit{id}",)
 async def update_user_data(id: str, req: UpdateUserModel):
     req = {k: v for k, v in req.dict().items() if v is not None}
     print(req)
@@ -67,7 +67,7 @@ async def update_user_data(id: str, req: UpdateUserModel):
         "There was an error updating the user data.",
     )
 
-@router.delete("/{id}" ,response_description="User data deleted from database")
+@router.delete("/delete{id}" ,response_description="User data deleted from database")
 async def delete_user_data(id: str, current_user = Depends(get_current_user)):
     deleted_user = await delete_user(id)
     if deleted_user: 
@@ -81,10 +81,10 @@ async def delete_user_data(id: str, current_user = Depends(get_current_user)):
 
 @router.put("/updateUserMerchant")
 async def update_user_merchant(id_user: UpdateUserMerchant):
-    updateMerchantUser = await merchant_collection.find({"id_user":id_user}).to_list(length=10)
+    updateMerchantUser = await merchant_collection.find({"id_user":id_user.id_user}).to_list(length=10)
     if updateMerchantUser:
         updated_merchant_user =await user_collection.update_one(
-            {"id_user": id_user}, {"$set": {"merchant":updateMerchantUser}}
+            {"_id": id_user.id_user}, {"$set": {"merchant":updateMerchantUser}}
         )
         if updated_merchant_user:
             return "True"

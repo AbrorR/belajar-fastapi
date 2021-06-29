@@ -47,8 +47,7 @@ class UpdateUserModel(BaseModel):
                 "username": "usera",
                 "fullname": "User A",
                 "password": "usera",
-                "merchant": [],
-                "status": True
+                "status": True,
             }
         }
 

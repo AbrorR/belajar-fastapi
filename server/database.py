@@ -4,7 +4,6 @@ from bson.objectid import ObjectId
 from pydantic import ValidationError
 
 from decouple import config
-from fastapi import FastAPI
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, HTTPException, status, APIRouter
@@ -45,7 +44,7 @@ def user_helper(user) -> dict:
 router = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login/", 
-scopes={"Admin": "Read information about the current user.", "Staff": "Read items."},
+scopes={"Admin": "Akses semua data.", "Staff": "Read items."},
 )
 
 SECRET_KEY = "d849550a56736ecafa159d5b68e5bd166fd8c7cf96377b804c04e0693de42dab"
