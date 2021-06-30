@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from decouple import config
 from uuid import UUID
 
-from fastapi import Depends, FastAPI, HTTPException, status, APIRouter
+from fastapi import Depends, FastAPI, HTTPException, status, APIRouter, Security
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, SecurityScopes
 
 from jose import JWTError, jwt
@@ -62,16 +62,16 @@ def create_access_token(data: dict):
 @router.post("/")
 async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
     found_user = await user_collection.find_one({"username":form_data.username})
-    print(found_user)
     if found_user:
         found_password = found_user["password"]
         if form_data.password != found_password:
             raise HTTPException(status_code=400, detail="Incorrect password")
         found_scopes = found_user["scopes"]
+        print(found_scopes)
         if form_data.scopes != found_scopes:
             raise HTTPException(status_code=400, detail="Not enough permissions")
         access_token = create_access_token(
-            data={"sub": found_user["username"],"scopes": form_data.scopes}
+            data={"sub": found_user["username"]}
         )
         return {"access_token": access_token, "token_type": "bearer"}
     if not found_user: 
@@ -90,15 +90,16 @@ def get_current_user(security_scopes: SecurityScopes, token: str = Depends(oauth
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub") 
+        username: str = payload.get("sub",[]) 
         if username is None:
             raise credentials_exception
-        token_scopes = payload.get("scopes", [])
+        # token_scopes = payload.get("scopes", [])
         # token_data = TokenData(scopes=token_scopes, username=username)
     except (JWTError, ValidationError):
         raise credentials_exception
+    # user = get_user(fake_users_db, username=token_data.username)
     for scope in security_scopes.scopes:
-        if scope not in token_scopes.scopes:
+        if scope not in username.scopes:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Not enough permissions",
@@ -106,10 +107,18 @@ def get_current_user(security_scopes: SecurityScopes, token: str = Depends(oauth
             )
     return username
 
-# @router.get("/items")
-# def items(current_user = Depends(get_current_user)):
-#     print(current_user)
-#     return {"oke"}
+# async def get_current_active_user(
+#     current_user = Security(get_current_user, scopes=["me"])
+# ):
+#     if current_user.disabled:
+#         raise HTTPException(status_code=400, detail="Inactive user")
+#     return current_user
+    
+
+@router.get("/items")
+def items(current_user = Depends(get_current_user), scopes=["Admin"]):
+    print(current_user, scopes)
+    return {"oke"}
 
 
 
